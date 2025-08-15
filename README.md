@@ -1,71 +1,66 @@
-# 🤖 AI Lead Qualification Workflow (n8n)
+🤖 AI Lead Qualification Automation with n8n + OpenAI
+🤖 Automação de Qualificação de Leads com n8n + OpenAI
 
-## 🇧🇷 Sobre o Projeto
-Este projeto é um fluxo de trabalho **n8n** que automatiza a **qualificação de leads** usando:
-- 📩 Captura de leads via Webhook
-- 🔍 Enriquecimento de contatos com Dropcontact
-- 🤖 Qualificação automática com IA (OpenAI)
-- 📊 Decisão baseada em Lead Score
-- 🔥 Integração com Zoho CRM para leads quentes
-- 🌱 Sequência de nutrição para leads frios
-- ⚡ Notificações instantâneas no Slack
-- 📧 E-mails automáticos para prospecção
-- 📑 Registro e análise no Google Sheets
+PT: Este projeto foi desenvolvido no n8n para automatizar a qualificação de leads B2B, capturando dados via Webhook, enriquecendo informações com Dropcontact e usando IA (OpenAI) para pontuar e priorizar contatos.
+EN: This project was developed in n8n to automate B2B lead qualification, capturing data via Webhook, enriching information with Dropcontact, and using AI (OpenAI) to score and prioritize contacts.
 
-**Principais Benefícios:**
-- Automação ponta a ponta do processo de qualificação
-- Análise inteligente de dados do lead
-- Priorização automática de follow-up
+⚙️ Funcionalidades / Features
 
----
+📩 Recebe leads via Webhook / Receives leads via Webhook
 
-## 🇬🇧 About the Project
-This is an **n8n** workflow that automates **lead qualification** using:
-- 📩 Lead capture via Webhook
-- 🔍 Contact enrichment with Dropcontact
-- 🤖 Automatic qualification with AI (OpenAI)
-- 📊 Decision-making based on Lead Score
-- 🔥 Zoho CRM integration for hot leads
-- 🌱 Nurturing sequence for cold leads
-- ⚡ Instant Slack notifications
-- 📧 Automated prospecting emails
-- 📑 Logging and analytics in Google Sheets
+🔍 Enriquecimento de dados com Dropcontact / Data enrichment with Dropcontact
 
-**Key Benefits:**
-- End-to-end lead qualification automation
-- Intelligent lead data analysis
-- Automatic follow-up prioritization
+🤖 Qualificação inteligente com OpenAI / Smart qualification with OpenAI
 
----
+📊 Classificação automática por Lead Score / Automatic classification by Lead Score
 
-## 🚀 Como Usar / How to Use
+🔥 Integração com Zoho CRM para leads quentes / Zoho CRM integration for hot leads
 
-### 🇧🇷 Passos:
-1. Importe o arquivo `My workflow 8 (2).json` no seu **n8n**.
-2. Configure as credenciais:
-   - **Dropcontact API**
-   - **Zoho CRM**
-   - **SMTP Email**
-   - **Slack Webhook**
-   - **Google Sheets API**
-   - **OpenAI API**
-3. Ative o workflow.
+🌱 Sequência de nutrição para leads frios / Nurture sequence for cold leads
 
-### 🇬🇧 Steps:
-1. Import the `My workflow 8 (2).json` file into your **n8n**.
-2. Configure the credentials:
-   - **Dropcontact API**
-   - **Zoho CRM**
-   - **SMTP Email**
-   - **Slack Webhook**
-   - **Google Sheets API**
-   - **OpenAI API**
-3. Activate the workflow.
+⚡ Notificações instantâneas no Slack / Instant Slack notifications
 
----
+📧 E-mails automáticos para prospecção / Automated prospecting emails
 
-## 📂 Estrutura do Projeto / Project Structure
-ai-lead-qualification-n8n/
-│
-├── My workflow 8 (2).json # n8n workflow file
-└── README.md # Documentation
+📑 Registro no Google Sheets / Google Sheets logging
+
+🔗 Tecnologias Utilizadas / Technologies Used
+
+n8n (self-hosted)
+
+OpenAI GPT-4.1
+
+Dropcontact API
+
+Zoho CRM API
+
+Slack Webhook
+
+Google Sheets API
+
+📂 Workflow
+
+O fluxo completo está disponível no arquivo:
+My workflow 8 (2).json
+
+PT: Você pode importá-lo diretamente no seu ambiente n8n.
+EN: You can import it directly into your n8n environment.
+
+🧪 Pré-requisitos / Prerequisites
+
+Conta na OpenAI com chave de API / OpenAI account with API key
+
+Instância do n8n rodando / Running n8n instance
+
+Conta Dropcontact / Dropcontact account
+
+Conta Zoho CRM / Zoho CRM account
+
+Conexão com Slack / Slack connection
+
+Conexão com Google Sheets / Google Sheets connection
+
+👨‍💻 Autor / Author
+
+Vinícius Adrian Siqueira de Oliveira
+LinkedIn • Portfólio
