@@ -1,0 +1,534 @@
+{
+  "name": "My workflow 14",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-capture",
+        "options": {}
+      },
+      "id": "c326fcea-691d-48b1-b29a-38b0fea5889f",
+      "name": "Lead Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1456,
+        176
+      ],
+      "retryOnFail": false,
+      "maxTries": 1,
+      "webhookId": "REDACTED_ID"
+    },
+    {
+      "parameters": {
+        "additionalFields": {},
+        "options": {}
+      },
+      "id": "324af333-5244-4a1a-bbe9-b53199556eed",
+      "name": "🔍 Contact Enrichment",
+      "type": "n8n-nodes-base.dropcontact",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        176
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert lead qualification agent for A & N Consulting Group. \n\nAnalyze this lead data and provide a comprehensive qualification:\n\nLead Data: {{ $json }}\nEnrichment Data: {{ $node['🔍 Contact Enrichment'].json }}\n\nProvide a detailed analysis with:\n1. Lead Score (0-100)\n2. Qualification Reason\n3. Company Analysis (size, industry, potential)\n4. Pain Points Identification\n5. Recommended Action (Hot Lead, Nurture, Disqualify)\n6. Follow-up Strategy\n7. Priority Level (High/Medium/Low)\n\nFormat your response as structured JSON.",
+        "options": {
+          "systemMessage": "You are a B2B lead qualification expert specializing in consulting and automation services. You understand business pain points, company sizing, and lead prioritization. Always provide actionable insights and specific next steps.",
+          "maxIterations": 3,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "ec12ec6c-b98e-4d65-a8e7-865079465629",
+      "name": "🤖 AI Lead Qualification Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        176
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "REDACTED_ID",
+              "leftValue": "={{ Number($json.lead_score || 0) }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "150407d2-f3e4-49e8-a672-8890359df77f",
+      "name": "📊 Lead Scoring Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "operation": "upsert",
+        "Company": "={{ $node['🔍 Contact Enrichment'].json.company || $node['AI Agent'].json.company }}",
+        "lastName": "={{ $node['AI Agent'].json.last_name }}",
+        "additionalFields": {
+          "Annual_Revenue": "={{ $node['🔍 Contact Enrichment'].json.annual_revenue }}",
+          "Description": "AI-qualified hot lead (Score: {{ $json.lead_score }}/100) - Priority follow-up required. {{ $json.qualification_reason }}",
+          "Email": "={{ $node['AI Agent'].json.email }}",
+          "First_Name": "={{ $node['AI Agent'].json.first_name }}",
+          "Industry": "={{ $node['🔍 Contact Enrichment'].json.industry }}",
+          "Lead_Source": "n8n_automation",
+          "Lead_Status": "New",
+          "No_of_Employees": "={{ $node['🔍 Contact Enrichment'].json.company_size }}",
+          "Phone": "={{ $node['🔍 Contact Enrichment'].json.phone || $node['AI Agent'].json.phone }}",
+          "Website": "={{ $node['🔍 Contact Enrichment'].json.website }}"
+        }
+      },
+      "id": "9fff9d61-0e7a-4786-a059-33d98d91a886",
+      "name": "🔥 Zoho CRM - Hot Lead",
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        80
+      ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "operation": "upsert",
+        "Company": "={{ $node['🔍 Contact Enrichment'].json.company || $node['AI Agent'].json.company }}",
+        "lastName": "={{ $node['AI Agent'].json.last_name || $node['AI Agent'].json.first_name || 'Lead' }}",
+        "additionalFields": {
+          "Annual_Revenue": "={{ $node['🔍 Contact Enrichment'].json.annual_revenue || $node['AI Agent'].json.annual_revenue || '' }}",
+          "Description": "Lead in nurture sequence (Score: {{ $json.lead_score }}/100) - Follow qualification strategy. {{ $json.qualification_reason }}",
+          "Email": "={{ $node['🔍 Contact Enrichment'].json.email || $node['AI Agent'].json.email }}",
+          "Industry": "={{ $node['🔍 Contact Enrichment'].json.industry || $node['AI Agent'].json.industry }}",
+          "Lead_Source": "n8n_automation",
+          "Lead_Status": "New",
+          "No_of_Employees": "={{ $node['🔍 Contact Enrichment'].json.company_size || $node['AI Agent'].json.company_size }}",
+          "Phone": "={{ $node['🔍 Contact Enrichment'].json.phone || $node['AI Agent'].json.phone }}",
+          "Website": "={{ $node['🔍 Contact Enrichment'].json.website || $node['AI Agent'].json.website || '' }}"
+        }
+      },
+      "id": "f7e1943e-cfa1-45e2-a1fb-d44fe5b7a6d4",
+      "name": "🌱 Zoho CRM - Nurture Lead",
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        288
+      ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_WEBHOOK",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔥 Novo lead HOT! Nome: {{$json.first_name || 'Sem Nome'}} {{$json.last_name || ''}}, Score: {{$json.lead_score || 'N/A'}}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "cd65c6fd-9e2c-4ad3-aed6-1ccf88b516cd",
+      "name": "⚡ Slack Hot Lead Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "your_email@example.com",
+        "toEmail": "={{ $json.email || $node['AI Agent'].json.email || $node['Parse AI Qualification Output'].json.email || $node['Parse AI Qualification Output'].json.lead_email || '' }}",
+        "subject": "Welcome to A&N Consulting - Your Automation Journey Begins",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n    <style>\n        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n        .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n        .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }\n        .content { padding: 20px; background: #f8f9fa; }\n        .cta { background: #3498db; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }\n        .footer { background: #34495e; color: white; padding: 15px; text-align: center; }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>Welcome to A&N Consulting Group</h1>\n        </div>\n        <div class=\"content\">\n            <p>Hi {{ $node['AI Agent'].json.first_name }},</p>\n            \n            <p>Thank you for your interest in automation solutions! Based on our AI analysis of {{ $node['🔍 Contact Enrichment'].json.company || $node['AI Agent'].json.company }}, we believe we can help you:</p>\n            \n            <ul>\n                <li>Streamline your business processes with n8n automation</li>\n                <li>Integrate your existing tools and systems</li>\n                <li>Implement AI-powered workflows for better efficiency</li>\n            </ul>\n            \n            <p><strong>Next Steps:</strong></p>\n            <p>{{ $node['🤖 AI Lead Qualification Agent'].json.follow_up_strategy }}</p>\n            \n            <a href=\"https://calendly.com/anconsulting/discovery-call?lead_id={{ $node['🔥 Zoho CRM - Hot Lead'].json.id || $node['🌱 Zoho CRM - Nurture Lead'].json.id }}\" class=\"cta\">Schedule Your Free Consultation</a>\n            \n            <p>Best regards,<br>\n            The A&N Consulting Automation Team</p>\n        </div>\n        <div class=\"footer\">\n            <p>A&N Consulting Group | Automation Specialists</p>\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "6adc989a-83e7-447d-83a7-5beb14af3a4b",
+      "name": "📧 Email Nurture Sequence",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        288
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "webhookId": "REDACTED_ID",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_SPREADSHEET_ID",
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "REPLACE_WITH_YOUR_SHEET_URL"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5dab0cb6-debc-480d-ad49-67d868cd2570",
+      "name": "📊 Analytics & Logging",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        -720,
+        384
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {},
+      "id": "ae36a749-afd9-4679-8421-b85a888865fc",
+      "name": "🎯 AI Follow-up Strategy",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_WEBHOOK",
+        "options": {}
+      },
+      "id": "9ef1ee39-fc60-44cc-a5e3-6044bdf0acaf",
+      "name": "❌ Error Handler & Notifications",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        480
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -864,
+        384
+      ],
+      "id": "852522cd-7e79-43e2-a6b5-c1dbbca08d7d",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        288
+      ],
+      "id": "dd730328-f510-4022-a949-2b268e218424",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(i => {\n  const d = i.json;\n  d.email = (d.email||\"\").trim().toLowerCase();\n  d.phone = (d.phone||\"\").replace(/\\D/g,\"\");\n  d.company = (d.company||\"\").trim().replace(/\\b\\w/g,c=>c.toUpperCase()) || \"Default Company\";\n  d.first_name = (d.first_name||d.name||\"\").trim();\n  d.last_name = (d.last_name||\"Lead\").trim();\n  d.domain = d.email.includes(\"@\") ? d.email.split(\"@\")[1] : \"\";\n  d.timestamp = new Date().toISOString();\n  d.lead_source = d.lead_source || \"Webhook\";\n  d.lead_score = parseInt(d.lead_score||0);\n  d.qualification_reason = d.qualification_reason || \"\";\n  return {json: d};\n});"
+      },
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        176
+      ],
+      "id": "be9e5730-4846-4cfb-bc6d-384939fab585",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1264,
+        384
+      ],
+      "id": "592d0a98-1f11-401d-811d-dae517ad9342",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(item=>{\n  const j = item.json;\n  return {\n    json: {\n      Timestamp: j.timestamp || new Date().toISOString(),\n      Lead_ID: j.zoho_id || j.id || \"\",\n      Email: j.email || \"\",\n      Company: j.company || \"\",\n      Lead_Score: parseInt(j.lead_score||0),\n      Classification: (parseInt(j.lead_score||0) >= 80 ? \"HOT\" : \"NURTURE\"),\n      Industry: j.industry || \"\",\n      Company_Size: j.company_size || \"\",\n      Phone: j.phone || \"\",\n      Lead_Source: j.lead_source || \"\",\n      Qualification_Reason: j.qualification_reason || \"\",\n      Description: j.description || \"\"\n    }\n  };\n});"
+      },
+      "id": "5b63fabc-4b4a-4f5e-88df-4008fe1e83bc",
+      "name": "Format for Sheets",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(item=>{\n  const j = item.json || {};\n  if(j.lead_score && typeof j.lead_score === 'number') return {json:j};\n  const candidates = ['output_text','text','output','result','response','body','answer','content','choices','data'];\n  let parsed = {};\n  for(const k of candidates){\n    if(!j[k]) continue;\n    try{\n      const val = j[k];\n      if(typeof val === 'string'){\n        const s = val.trim();\n        // Try extract JSON substring\n        if(s.startsWith('{') || s.startsWith('[')){\n          Object.assign(parsed, JSON.parse(s));\n        } else {\n          // extract {...} substring\n          const m = s.match(/\\{[\\s\\S]*\\}$/);\n          if(m) Object.assign(parsed, JSON.parse(m[0]));\n        }\n        // If still not, try to find key: value pairs like lead_score: 95\n        const nmatch = s.match(/lead[_\\s\\-]?score[^\\d]*(\\d{1,3})/i);\n        if(nmatch) parsed.lead_score = parseInt(nmatch[1]);\n        const em = s.match(/([A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,})/i);\n        if(em) parsed.email = parsed.email || em[1];\n      } else if(Array.isArray(val)){\n        val.forEach(el=>{\n          if(typeof el === 'string'){\n            try{\n              if(el.trim().startsWith('{')) Object.assign(parsed, JSON.parse(el));\n            }catch(e){}\n          } else if(typeof el === 'object'){\n            Object.assign(parsed, el);\n          }\n        });\n      } else if(typeof val === 'object'){\n        Object.assign(parsed, val);\n      }\n    }catch(e){}\n  }\n  // Merge parsed into j\n  for(const kk in parsed) if(parsed[kk] !== undefined) j[kk]=parsed[kk];\n  // Try common nested patterns\n  if(!j.lead_score && j.score) j.lead_score = parseInt(j.score);\n  if(!j.lead_score && j.result && j.result.score) j.lead_score = parseInt(j.result.score);\n  if(!j.email && j.result && j.result.email) j.email = j.result.email;\n  if(!j.email && j.contact && j.contact.email) j.email = j.contact.email;\n  // fallback: search any numeric in strings that looks like score\n  if(!j.lead_score){\n    const sAll = JSON.stringify(j).match(/(\\\\\"?lead[_\\s\\-]?score\\\\\"?\\s*[:=]\\s*)(\\d{1,3})/i);\n    if(sAll) j.lead_score = parseInt(sAll[2]);\n  }\n  j.lead_score = parseInt(j.lead_score||0);\n  j.first_name = j.first_name || j.name || (j.full_name? j.full_name.split(' ')[0] : '');\n  j.last_name = j.last_name || '';\n  // ensure email lowercased\n  if(j.email) j.email = (''+j.email).trim().toLowerCase();\n  return {json:j};\n});"
+      },
+      "id": "9278b6f4-ffe8-46be-b1e8-946978ac1427",
+      "name": "Parse AI Qualification Output",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Contact Enrichment": {
+      "main": [
+        [
+          {
+            "node": "🤖 AI Lead Qualification Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 AI Lead Qualification Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Qualification Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Lead Scoring Decision": {
+      "main": [
+        [
+          {
+            "node": "🔥 Zoho CRM - Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🌱 Zoho CRM - Nurture Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔥 Zoho CRM - Hot Lead": {
+      "main": [
+        [
+          {
+            "node": "⚡ Slack Hot Lead Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format for Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🌱 Zoho CRM - Nurture Lead": {
+      "main": [
+        [
+          {
+            "node": "📧 Email Nurture Sequence",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format for Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Slack Hot Lead Alert": {
+      "main": [
+        [
+          {
+            "node": "🎯 AI Follow-up Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🤖 AI Lead Qualification Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🎯 AI Follow-up Strategy",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "🔍 Contact Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for Sheets": {
+      "main": [
+        [
+          {
+            "node": "📊 Analytics & Logging",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Qualification Output": {
+      "main": [
+        [
+          {
+            "node": "📊 Lead Scoring Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "instanceId": "14381bdb543a3065b8156f71f9b7fcd525907dd6f5ee6cfd7174fde388c12b97"
+  },
+  "tags": [
+    {
+      "createdAt": "2025-08-15T01:11:47.796Z",
+      "updatedAt": "2025-08-15T01:11:47.796Z",
+      "id": "3xROLWqewtv6iYD2",
+      "name": "AI Powered"
+    },
+    {
+      "createdAt": "2025-08-15T01:11:47.751Z",
+      "updatedAt": "2025-08-15T01:11:47.751Z",
+      "id": "I00SJcd4APUQlqlz",
+      "name": "Lead Generation"
+    },
+    {
+      "createdAt": "2025-08-15T01:11:47.983Z",
+      "updatedAt": "2025-08-15T01:11:47.983Z",
+      "id": "x30wwn7C7ubmvDo5",
+      "name": "CRM Automation"
+    }
+  ]
+}
